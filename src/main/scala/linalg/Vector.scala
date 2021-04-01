@@ -2,6 +2,14 @@ package linalg
 
 import org.apache.spark.rdd.RDD
 
+
+/**
+ * A Vector object is created from an RDD of (key,value) pairs where
+ * key is the row id and value is the corresponding vector element.
+ * The Vector is represented as a dense structure (also zero elements are stored)
+ *
+ * @param rdd: RDD[(id:Int, element:Double)]
+ */
 class Vector (val rdd:RDD[(Int, Double)]) {
 
   def size (): Long = {
@@ -34,6 +42,12 @@ class Vector (val rdd:RDD[(Int, Double)]) {
     this.rdd.join(that.rdd)
       .map{case (_,(x,y)) => x*y}
       .reduce(_+_)
+  }
+
+  def show () {
+    print("(")
+    for ((_,x) <- rdd.collect) print(x + ", ")
+    print(")")
   }
 
 }
