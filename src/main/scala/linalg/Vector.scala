@@ -1,19 +1,24 @@
 package linalg
 
+import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 
 
 /**
- * A Vector object is created from an RDD of (key,value) pairs where
+ * A Vector object is stored as an RDD of (key,value) pairs where
  * key is the row id and value is the corresponding vector element.
  * The Vector is represented as a dense structure (also zero elements are stored)
  *
  * @param rdd: RDD[(id:Int, element:Double)]
  */
-class Vector (val rdd:RDD[(Int, Double)]) {
+class Vector (var rdd:RDD[(Int, Double)] = null) {
 
-  def size (): Long = {
-    rdd.count()
+  def init (spark:SparkContext, array:Array[Double]) {
+    rdd = spark.parallelize(for (i <- array.indices) yield (i,array(i)))
+  }
+
+  def size (): Int = {
+    rdd.count().toInt
   }
 
   def magnitude (): Double = {
