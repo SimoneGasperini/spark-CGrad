@@ -50,9 +50,14 @@ class Vector (var rdd:RDD[(Int, Double)] = null) {
   }
 
   def show () {
-    print("(")
-    for ((_,x) <- rdd.collect) print(x + ", ")
-    print(")")
+    val s:Int = size()
+    val array = Array.ofDim[Double](n1=s)
+    for ((i,x) <- rdd.collect) array(i) = x
+    print("[")
+    for (i <- array.indices)
+      if (i == size-1) print(array(i))
+      else print(array(i) + ", ")
+    println("]")
   }
 
 }

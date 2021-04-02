@@ -25,6 +25,10 @@ class Matrix (var rdd:RDD[(Int, (Int, Double))] = null) {
     math.sqrt(rdd.count).toInt
   }
 
+  def transpose (): Matrix = {
+    new Matrix(rdd.map{case (j,(i,x)) => (i,(j,x))})
+  }
+
   def elementWise_byScalar (op:(Double,Double) => Double, k:Double): Matrix = {
     new Matrix(rdd.map{case (j,(i,x)) => (j,(i,op(x,k)))})
   }
@@ -34,17 +38,28 @@ class Matrix (var rdd:RDD[(Int, (Int, Double))] = null) {
   def + (k:Double): Matrix = elementWise_byScalar(op=_+_, k=k)
   def / (k:Double): Matrix = elementWise_byScalar(op=_/_, k=k)
 
+  def dot (vec:Vector): Vector = {
+    new Vector(rdd.groupByKey()
+      .join(vec.rdd)
+      .flatMap{case(_, v) =>
+        v._1.map(mv => (mv._1, mv._2 * v._2))}
+      .reduceByKey(_+_))
+  }
+
   def show () {
-    var current: Int = -1
-    for ((_, (row, el)) <- rdd.collect) {
-      if (row == current) print(el + ", ")
-      else {
-        if (current != -1) println(")")
-        print("(" + el + ", ")
-        current += 1
+    val s:Int = size()
+    val array = Array.ofDim[Double](n1=s, n2=s)
+    for ((j,(i,x)) <- rdd.collect) array(i)(j) = x
+    print('[')
+    for (i <- array.indices) {
+      print("[")
+      for (j <- array(i).indices) {
+        if (j == size-1) print(array(i)(j))
+        else print(array(i)(j) + ", ")
       }
+      if (i == size-1) println("]]")
+      else println("]")
     }
-    print(")")
   }
 
 }
