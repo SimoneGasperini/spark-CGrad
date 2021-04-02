@@ -41,9 +41,17 @@ class Matrix (var rdd:RDD[(Int, (Int, Double))] = null) {
   def dot (vec:Vector): Vector = {
     new Vector(rdd.groupByKey()
       .join(vec.rdd)
-      .flatMap{case(_, v) =>
-        v._1.map(mv => (mv._1, mv._2 * v._2))}
-      .reduceByKey(_+_))
+      .flatMap{case (_,v) =>
+        v._1.map(mv => (mv._1, mv._2*v._2)) }
+      .reduceByKey(_+_) )
+  }
+
+  def dot (mat:Matrix): Matrix = {
+    val rddT = mat.rdd.map{case (k,(j,x)) => (j,(k,x))}
+    new Matrix(rdd.join(rddT)
+      .map{case (_, ((i,x),(k,y))) => ((i,k), x*y) }
+      .reduceByKey(_+_)
+      .map{case ((i,k), sum) => (k, (i,sum)) })
   }
 
   def show () {
